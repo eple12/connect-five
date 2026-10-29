@@ -17,7 +17,7 @@ function pos(black, white) {
 }
 function best(level, black, white, lim) {
   const e = factory();
-  e.newGame(7); e.setLevel(level);
+  e.newGame(7); e.setLevel(level, { rnd: 0 });   // rnd = deliberate random moves (tested below)
   e.setPosition(pos(black, white));
   return e.go(Object.assign({ ms: 3000 }, lim || {}));
 }
@@ -85,3 +85,11 @@ for (const lv of [3, 5, 10]) {
 }
 console.log(fails ? `${fails} FAILED` : 'all passed');
 process.exit(fails ? 1 : 0);
+
+// 7. the weakest levels really do play arbitrary moves (and the strong ones never do)
+{
+  const missed = lv => { let n = 0; for (let sd = 1; sd <= 40; sd++) { const e = factory(); e.newGame(sd); e.setLevel(lv); e.setPosition(pos('H8 I8 J8 K8', 'H9 I9 J9 A1')); const m = name(e.go({ ms: 200 }).move); if (m !== 'G8' && m !== 'L8') n++; } return n; };
+  const m1 = missed(1), m10 = missed(10);
+  ok(m1 >= 20, `level 1 often ignores a winning move (${m1}/40)`);
+  ok(m10 === 0, `level 10 never does (${m10}/40)`);
+}
